@@ -15,11 +15,11 @@ void main_program()
 {
 	using namespace std;
 
-	bool human_player = false;
+	bool human_player = true;
 
 	MCTS::ComputeOptions player1_options, player2_options;
 	player1_options.max_iterations = 1000;
-	//player1_options.max_time = 10;
+	player1_options.max_time = 10;
 	player1_options.verbose = true;
 	player2_options.max_iterations = 100;
 	//player1_options.max_time = 10;
@@ -159,13 +159,14 @@ unique_ptr<ofstream>& prepare_file(const MCTS::ComputeOptions& options, size_t &
 	return outfile;
 }
 
-void save_dataset(const GomokuState& state, const MCTS::ComputeOptions& options)
+void save_dataset(const GomokuState& state, const GomokuState::Move& move, const MCTS::ComputeOptions& options)
 {
 	if (!options.make_dataset)
 		return;
 	static size_t file_size = 0;
 
-	string line = state.str() + to_string(options.best_visits) + "," + to_string(options.best_wins);
+	string line = state.str() + to_string(move.first) + "," + to_string(move.second) + "," 
+		+ to_string(options.best_visits) + "," + to_string(options.best_wins);
 	auto &file = prepare_file(options, file_size);
 	*file << line << endl;
 	file_size += line.size();
@@ -196,19 +197,19 @@ void self_play()
 				if (state.player_to_move == 1) {
 					move = MCTS::compute_move(state, player1_options);
 					state.do_move(move);
-					save_dataset(state, player1_options);
+					save_dataset(state, move, player1_options);
 				}
 				else {
 					move = MCTS::compute_move(state, player2_options);
 					state.do_move(move);
-					save_dataset(state, player2_options);
+					save_dataset(state, move, player2_options);
 				}
 
 				if (_kbhit()) {
 					int ch = _getch();
 					if (ch == 'q' || ch == 'Q') {
 						player1_options.quit = true;
-						save_dataset(state, player1_options);
+						save_dataset(state, move, player1_options);
 						goto HERE;
 					}
 				}
