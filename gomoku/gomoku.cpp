@@ -18,14 +18,14 @@ void main_program()
 	bool human_player = true;
 
 	MCTS::ComputeOptions player1_options, player2_options;
-	player1_options.max_iterations = 1000;
+	player1_options.max_iterations = 10000000;
 	player1_options.max_time = 10;
 	player1_options.verbose = true;
 	player2_options.max_iterations = 100;
 	//player1_options.max_time = 10;
 	player2_options.verbose = true;
 
-	GomokuState state;
+	GomokuState state(15);
 	while (state.has_moves()) {
 		cout << endl << "State: " << state << endl;
 
@@ -119,6 +119,8 @@ void read_config(MCTS::ComputeOptions& options)
 				}
 				else if (key == "board_size") {
 					options.board_size = stoi(value);
+				} else if (key == "top_n") {
+					options.top_n = stoi(value);
 				}
 			}
 
@@ -224,8 +226,8 @@ HERE:
 int main()
 {
 	try {
-		//main_program();
-		self_play();
+		main_program();
+		//self_play();
 	}
 	catch (std::runtime_error& error) {
 		std::cerr << "ERROR: " << error.what() << std::endl;

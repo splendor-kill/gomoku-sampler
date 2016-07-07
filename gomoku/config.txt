@@ -1,7 +1,7 @@
 dat_dir =.
 file_size(K) = 100000
 file_prefix = dataset_
-iterations_param1 = 10
+iterations_param1 = 100
 iterations_param2 = 1000
 number_of_repeat = 100
 number_of_threads = 8
@@ -9,3 +9,4 @@ verbose = false
 make_dataset = true
 max_time = -1
 board_size = 15
+top_n = 5

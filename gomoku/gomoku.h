@@ -53,7 +53,7 @@ public:
 		dattest(has_moves());
 		check_invariant();
 
-		std::uniform_int_distribution<int> moves(0, empty_places.size() - 1);
+		std::uniform_int_distribution<int> moves(0, static_cast<int>(empty_places.size()) - 1);
 		int idx = moves(*engine);
 
 		auto it(empty_places.begin());
