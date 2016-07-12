@@ -19,10 +19,9 @@ void main_program()
 
 	MCTS::ComputeOptions player1_options, player2_options;
 	player1_options.max_iterations = 10000000;
-	player1_options.max_time = 10;
+	player1_options.max_time = 20;
 	player1_options.verbose = true;
 	player2_options.max_iterations = 100;
-	//player1_options.max_time = 10;
 	player2_options.verbose = true;
 
 	GomokuState state(15);
@@ -192,30 +191,28 @@ void self_play()
 		player1_options.max_iterations = dist(gen);
 		MCTS::ComputeOptions player2_options = player1_options;
 
-		for (int i = 0; i < player1_options.number_of_repeat; i++) {
-			GomokuState state(player1_options.board_size);
-			while (state.has_moves()) {
-				GomokuState::Move move = GomokuState::no_move;
-				if (state.player_to_move == 1) {
-					move = MCTS::compute_move(state, player1_options);
-					state.do_move(move);
-					save_dataset(state, move, player1_options);
-				}
-				else {
-					move = MCTS::compute_move(state, player2_options);
-					state.do_move(move);
-					save_dataset(state, move, player2_options);
-				}
-
-				if (_kbhit()) {
-					int ch = _getch();
-					if (ch == 'q' || ch == 'Q') {
-						player1_options.quit = true;
-						save_dataset(state, move, player1_options);
-						goto HERE;
-					}
-				}
+		GomokuState state(player1_options.board_size);
+		while (state.has_moves()) {
+			GomokuState::Move move = GomokuState::no_move;
+			if (state.player_to_move == 1) {
+				move = MCTS::compute_move(state, player1_options);
+				state.do_move(move);
+				save_dataset(state, move, player1_options);
 			}
+			else {
+				move = MCTS::compute_move(state, player2_options);
+				state.do_move(move);
+				save_dataset(state, move, player2_options);
+			}
+
+			if (_kbhit()) {
+				int ch = _getch();
+				if (ch == 'q' || ch == 'Q') {
+					player1_options.quit = true;
+					save_dataset(state, move, player1_options);
+					goto HERE;
+				}
+			}			
 		}
 	}
 HERE:

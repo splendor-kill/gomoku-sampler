@@ -409,14 +409,18 @@ typename State::Move compute_move(const State root_state,
 	double start_time = ::omp_get_wtime();
 	#endif
 
+	std::random_device device;
+	auto seed = (static_cast<uint64_t>(device()) << 32) | device();
+
 	// Start all jobs to compute trees.
 	vector<future<unique_ptr<Node<State>>>> root_futures;
 	ComputeOptions job_options = options;
 	job_options.verbose = false;
 	for (int t = 0; t < options.number_of_threads; ++t) {
-		auto func = [t, &root_state, &job_options] () -> std::unique_ptr<Node<State>>
+		auto func = [t, &root_state, &job_options, seed] () -> std::unique_ptr<Node<State>>
 		{
-			return compute_tree(root_state, job_options, 1012411 * t + 12515);
+			//return compute_tree(root_state, job_options, 1012411 * t + 12515);
+			return compute_tree(root_state, job_options, seed);
 		};
 
 		root_futures.push_back(std::async(std::launch::async, func));
@@ -441,23 +445,23 @@ typename State::Move compute_move(const State root_state,
 		}
 	}
 
-	int bound = std::min<int>(static_cast<int>(visits.size()), options.top_n);
-	std::uniform_int_distribution<int> dist(1, bound);
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	int nth = dist(gen) - 1;
-	vector<std::pair<typename State::Move, int> > mapcopy(visits.begin(), visits.end());
-	sort(mapcopy.begin(), mapcopy.end(), [&](auto a, auto b) -> auto {
-		auto movea = a.first;
-		auto va = a.second;
-		auto wa = wins[movea];
-		auto moveb = b.first;
-		auto vb = b.second;
-		auto wb = wins[moveb];
-		return (wa + 1) / (va + 2) > (wb + 1) / (vb + 2);
-	});
+	//int bound = std::min<int>(static_cast<int>(visits.size()), options.top_n);
+	//std::uniform_int_distribution<int> dist(1, bound);
+	//std::random_device rd;
+	//std::mt19937 gen(rd());
+	//int nth = dist(gen) - 1;
+	//vector<std::pair<typename State::Move, int> > mapcopy(visits.begin(), visits.end());
+	//sort(mapcopy.begin(), mapcopy.end(), [&](auto a, auto b) -> auto {
+	//	auto movea = a.first;
+	//	auto va = a.second;
+	//	auto wa = wins[movea];
+	//	auto moveb = b.first;
+	//	auto vb = b.second;
+	//	auto wb = wins[moveb];
+	//	return (wa + 1) / (va + 2) > (wb + 1) / (vb + 2);
+	//});
 
-	typename State::Move best_move = mapcopy.at(nth).first;
+	//typename State::Move best_move = mapcopy.at(nth).first;
 
 	//if (options.verbose) {
 	//	for (auto itr : mapcopy) {
@@ -469,26 +473,26 @@ typename State::Move compute_move(const State root_state,
 	//}
 
 	// Find the node with the most visits.
-	//double best_score = -1;
-	//typename State::Move best_move = typename State::Move();
-	//for (auto itr: visits) {
-	//	auto move = itr.first;
-	//	double v = itr.second;
-	//	double w = wins[move];
-	//	// Expected success rate assuming a uniform prior (Beta(1, 1)).
-	//	// https://en.wikipedia.org/wiki/Beta_distribution
-	//	double expected_success_rate = (w + 1) / (v + 2);
-	//	if (expected_success_rate > best_score) {
-	//		best_move = move;
-	//		best_score = expected_success_rate;
-	//	}
+	double best_score = -1;
+	typename State::Move best_move = typename State::Move();
+	for (auto itr: visits) {
+		auto move = itr.first;
+		double v = itr.second;
+		double w = wins[move];
+		// Expected success rate assuming a uniform prior (Beta(1, 1)).
+		// https://en.wikipedia.org/wiki/Beta_distribution
+		double expected_success_rate = (w + 1) / (v + 2);
+		if (expected_success_rate > best_score) {
+			best_move = move;
+			best_score = expected_success_rate;
+		}
 
-	//	if (options.verbose) {
-	//		cerr << "Move: " << itr.first
-	//		     << " (" << setw(2) << right << int(100.0 * v / double(games_played) + 0.5) << "% visits)"
-	//		     << " (" << setw(2) << right << int(100.0 * w / v + 0.5)    << "% wins)" << endl;
-	//	}
-	//}
+		if (options.verbose) {
+			cerr << "Move: " << itr.first
+			     << " (" << setw(2) << right << int(100.0 * v / double(games_played) + 0.5) << "% visits)"
+			     << " (" << setw(2) << right << int(100.0 * w / v + 0.5)    << "% wins)" << endl;
+		}
+	}
 
 	if (options.verbose) {
 		auto best_wins = wins[best_move];
